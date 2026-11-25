@@ -63,16 +63,14 @@ const DADOS = /*==DADOS-INICIO==*/{
          (ex.: src:"campanha.png") ou ser um link https completo.
    ===================================================================== */
 const TELAS = [
-  { tipo: "painel", tempo: 60 },
+  { tipo: "painel", tempo: 120 },
   { tipo: "imagem", tempo: 60, src: "NATAL", cheia: true },   // Celebração de Natal (arte embutida no fim do arquivo)
-  { tipo: "aviso",  tempo: 60, tag: "Campanha", titulo: "Rematrículas 2026 abertas",
-    texto: "Garanta a vaga do seu filho com condições especiais. Procure a secretaria da sua unidade." },
   // { tipo: "imagem", tempo: 15, src: "campanha-irmaos.png", cheia: true },
   // { tipo: "video",  tempo: "fim", src: "institucional.mp4", cheia: true },
   // { tipo: "site",   tempo: 30, src: "https://maristapr.my.canva.site/mat26", cheia: true },
 ];
 
-const AJUSTES = { destaqueSeg: 5, recarregarMin: 60 };
+const AJUSTES = { destaqueSeg: 5, recarregarMin: 10 };  // a cada 10 min busca números novos
 /* ===================================================================== */
 </script>
 <style>
@@ -207,6 +205,13 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 60 };
   .dots i{width:calc(var(--u)*.7);height:calc(var(--u)*.7);border-radius:50%;background:rgba(255,255,255,.25);transition:all .3s}
   .dots i.on{background:#fff;transform:scale(1.3)}
   #prog{position:absolute;left:0;bottom:0;height:calc(var(--u)*.25);background:var(--sky2);width:0;z-index:30}
+  #iniciar{position:fixed;inset:0;z-index:999;background:rgba(8,26,51,.92);display:flex;align-items:center;justify-content:center;
+    color:#fff;text-align:center;font-family:inherit}
+  #iniciar .box{max-width:70vw}
+  #iniciar .ok{display:inline-grid;place-items:center;width:12vh;height:12vh;border-radius:50%;border:.6vh solid #6fb4ee;
+    font-size:4.5vh;font-weight:800;margin-bottom:4vh;animation:pulsa 1.6s ease-in-out infinite}
+  #iniciar h2{font-size:5vh;margin-bottom:2vh} #iniciar p{font-size:2.6vh;color:#a9c3e4}
+  @keyframes pulsa{50%{transform:scale(1.12);box-shadow:0 0 0 2vh rgba(111,180,238,.15)}}
   #keepalive{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;background:#081a33}
   body{background:transparent}
 </style>
@@ -275,6 +280,9 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 60 };
 
 <!-- Vídeo minúsculo em loop: faz o Fire TV entender que há mídia tocando e não entrar em ociosidade -->
 <video id="keepalive" muted playsinline loop autoplay></video>
+<div id="iniciar"><div class="box"><div class="ok">OK</div>
+  <h2>Pressione OK no controle para iniciar o painel</h2>
+  <p>Só é preciso fazer isso uma vez. Depois, o painel roda sozinho e mantém a TV ativa.</p></div></div>
 
 <script>
 
@@ -415,16 +423,40 @@ function tick(){ const d = new Date();
 
 /* Anti-ociosidade */
 let wl = null;
+let liberado = false;
+function liberar(){
+  if(liberado) return; liberado = true;
+  const v = $("#keepalive"); v.muted = false; v.volume = 1;   // a faixa de áudio é silenciosa
+  v.play().catch(()=>{ v.muted = true; v.play().catch(()=>{}); });
+  $("#iniciar").style.display = "none";
+  if("mediaSession" in navigator){
+    try{ navigator.mediaSession.metadata = new MediaMetadata({title:"Painel de Matrículas", artist:"Colégio Marista Paranaense"});
+         navigator.mediaSession.playbackState = "playing"; }catch(e){}
+  }
+  acordado();
+}
+document.addEventListener("keydown", liberar, true);
+document.addEventListener("click", liberar, true);
 async function acordado(){
   try{ if("wakeLock" in navigator && !wl){ wl = await navigator.wakeLock.request("screen"); wl.onrelease = ()=>wl=null; } }catch(e){}
-  const v = $("#keepalive"); if(v.paused) v.play().catch(()=>{});
+  const v = $("#keepalive"); if(liberado){ v.muted = false; v.volume = 1; } if(v.paused) v.play().catch(()=>{});
 }
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) acordado(); });
 document.addEventListener("keydown", acordado);
 setInterval(acordado, 30000);
 let ultimoT = -1;
 setInterval(()=>{ const v = $("#keepalive"); if(v.currentTime===ultimoT){ v.load(); v.play().catch(()=>{}); } ultimoT = v.currentTime; }, 20000);
-setTimeout(()=>location.reload(), AJUSTES.recarregarMin*60000);
+// Atualiza os DADOS sem recarregar a página (recarregar exigiria apertar OK de novo)
+async function atualizarDados(){
+  try{
+    const txt = await (await fetch(location.pathname + "?t=" + Date.now(), {cache:"no-store"})).text();
+    const a = txt.indexOf("/*==DADOS-INICIO==*/"), b = txt.indexOf("/*==DADOS-FIM==*/");
+    if(a < 0 || b < 0) return;
+    const novo = new Function("return " + txt.slice(a + 20, b))();
+    if(novo && novo.segmentos){ Object.assign(DADOS, novo); if(TELAS[atual] && TELAS[atual].tipo==="painel") render(); }
+  }catch(e){}
+}
+setInterval(atualizarDados, AJUSTES.recarregarMin*60000);
 
 function iniciar(){
   $("#keepalive").src = VIDEO_KEEPALIVE;
