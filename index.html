@@ -4,6 +4,77 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Painel Institucional — Matrículas 2026</title>
+<script>
+/* #####################################################################
+   COMO EDITAR OS DADOS
+
+   JEITO FÁCIL (sem código): abra o painel no navegador do computador
+   ou celular com  ?editar  no fim do endereço. Exemplo:
+       https://seu-painel.netlify.app/?editar
+   Um editor aparece ao lado do painel. Altere os números, confira o
+   resultado ao vivo e clique em "Baixar HTML atualizado". Depois é só
+   substituir o arquivo na hospedagem.
+
+   JEITO DIRETO: altere os números no bloco DADOS logo abaixo.
+   Digite apenas META e REALIZADO — porcentagens, "Faltam", meta total,
+   barras, cores e selos são CALCULADOS AUTOMATICAMENTE.
+   ##################################################################### */
+/* =====================================================================
+   DADOS — atualize aqui
+   ===================================================================== */
+const DADOS = /*==DADOS-INICIO==*/{
+  titulo: "Painel Institucional — Matrículas 2026",
+  subtitulo: "Colégio Marista Paranaense",
+  atualizadoEm: "25/11/2026",
+  // Digite só META e REALIZADO. Porcentagens, "Faltam" e o total são calculados sozinhos.
+  rematricula: { meta: 2705, realizado: 2626 },
+  novas:       { meta: 427,  realizado: 379  },
+
+  // Ordem na tela: os 4 primeiros formam a coluna 1, os 4 seguintes a coluna 2.
+  // somaNoTotal: true → o segmento entra na "Meta total de matrículas"
+  segmentos: [
+    { nome: "Educação Infantil", meta: 562,  realizado: 451,  somaNoTotal: true  },
+    { nome: "Anos Iniciais",     meta: 746,  realizado: 708,  somaNoTotal: true  },
+    { nome: "Anos Finais",       meta: 975,  realizado: 1036, somaNoTotal: true  },
+    { nome: "Ensino Médio",      meta: 849,  realizado: 811,  somaNoTotal: true  },
+    { nome: "NAC",               meta: 1510, realizado: 1300, somaNoTotal: false },
+    { nome: "Integral",          meta: 215,  realizado: 180,  somaNoTotal: false },
+    { nome: "Marista Idiomas",   meta: 290,  realizado: 135,  somaNoTotal: false },
+    { nome: "Plus",              meta: 100,  realizado: 68,   somaNoTotal: false },
+  ],
+  // Mensagens do letreiro no rodapé
+  avisos: [
+    "Rematrículas 2026 abertas — procure a secretaria da sua unidade",
+    "Indique um amigo e ajude a nossa escola a crescer",
+    "Agende uma visita e conheça nossos espaços",
+  ],
+}/*==DADOS-FIM==*/;
+/* =====================================================================
+   TELAS DO LOOP — adicione, remova ou reordene à vontade
+   tipo:  "painel" → o painel de matrículas acima
+          "imagem" → PNG/JPG (ex.: arte exportada do Canva)
+          "video"  → MP4 (tempo: "fim" = troca quando o vídeo acaba)
+          "site"   → qualquer página web (ex.: site do Canva)
+          "aviso"  → tela de texto pronta, no visual do painel
+   tempo: segundos na tela (60 = 1 minuto)
+   cheia: true = ocupa a TV inteira (sem cabeçalho e rodapé)
+   ajustar: true = imagem/vídeo preenche a tela cortando as bordas
+   Dica: arquivos de imagem/vídeo podem ficar na mesma pasta do HTML
+         (ex.: src:"campanha.png") ou ser um link https completo.
+   ===================================================================== */
+const TELAS = [
+  { tipo: "painel", tempo: 60 },
+  { tipo: "imagem", tempo: 60, src: "NATAL", cheia: true },   // Celebração de Natal (arte embutida no fim do arquivo)
+  { tipo: "aviso",  tempo: 60, tag: "Campanha", titulo: "Rematrículas 2026 abertas",
+    texto: "Garanta a vaga do seu filho com condições especiais. Procure a secretaria da sua unidade." },
+  // { tipo: "imagem", tempo: 15, src: "campanha-irmaos.png", cheia: true },
+  // { tipo: "video",  tempo: "fim", src: "institucional.mp4", cheia: true },
+  // { tipo: "site",   tempo: 30, src: "https://maristapr.my.canva.site/mat26", cheia: true },
+];
+
+const AJUSTES = { destaqueSeg: 5, recarregarMin: 60 };
+/* ===================================================================== */
+</script>
 <style>
   :root{
     --navy:#0f2f57; --navy2:#173e6e; --navy3:#1f4c85; --sky:#3d8fd6; --sky2:#6fb4ee;
@@ -52,10 +123,13 @@
   .ring .pv span{display:block;font-size:calc(var(--u)*.9);color:#a9c3e4;margin-top:calc(var(--u)*.4)}
   .hero .info{flex:1;position:relative;z-index:1}
   .hero .h{color:#cfe2f7}
-  .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*1.2);margin-top:calc(var(--u)*1.6)}
+  .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:calc(var(--u)*1.6)}
+  .nums > div{padding:0 calc(var(--u)*1.4)}
+  .nums > div:first-child{padding-left:0}
+  .nums > div + div{border-left:1px solid rgba(255,255,255,.22)}
   .nums .l{font-size:calc(var(--u)*1.05);color:#a9c3e4}
-  .nums .v{font-size:calc(var(--u)*3.7);font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;
-    margin-top:calc(var(--u)*.3);padding-bottom:calc(var(--u)*.8);border-bottom:1px solid rgba(255,255,255,.18)}
+  .nums .v{font-size:calc(var(--u)*3.3);font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;
+    margin-top:calc(var(--u)*.3);}
   .nums .v.f{color:#ffd27a}
   .bar{height:calc(var(--u)*.9);background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin-top:calc(var(--u)*1.6)}
   .bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--sky2),#fff);
@@ -85,7 +159,7 @@
   .segs-h .t{font-size:calc(var(--u)*1.5);font-weight:800;white-space:nowrap}
   .legend{display:flex;white-space:nowrap;gap:calc(var(--u)*.9);font-size:calc(var(--u)*.8);color:var(--muted)}
   .legend i{display:inline-block;width:calc(var(--u)*.75);height:calc(var(--u)*.75);border-radius:50%;margin-right:calc(var(--u)*.3);vertical-align:middle}
-  .grid{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:calc(var(--u)*.9);min-height:0}
+  .grid{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(4,1fr);grid-auto-flow:column;gap:calc(var(--u)*.9);min-height:0}
   .seg{border:1px solid var(--line);border-radius:calc(var(--u)*.9);padding:calc(var(--u)*1) calc(var(--u)*1.2);
     display:flex;flex-direction:column;justify-content:space-between;background:#fbfdff;position:relative;
     transition:transform .5s ease,box-shadow .5s ease,border-color .5s ease}
@@ -136,76 +210,6 @@
   #keepalive{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;background:#081a33}
   body{background:transparent}
 </style>
-<script>
-/* #####################################################################
-   COMO EDITAR OS DADOS
-
-   JEITO FÁCIL (sem código): abra o painel no navegador do computador
-   ou celular com  ?editar  no fim do endereço. Exemplo:
-       https://seu-painel.netlify.app/?editar
-   Um editor aparece ao lado do painel. Altere os números, confira o
-   resultado ao vivo e clique em "Baixar HTML atualizado". Depois é só
-   substituir o arquivo na hospedagem.
-
-   JEITO DIRETO: altere os números no bloco DADOS logo abaixo.
-   Digite apenas META e REALIZADO — porcentagens, "Faltam", meta total,
-   barras, cores e selos são CALCULADOS AUTOMATICAMENTE.
-   ##################################################################### */
-/* =====================================================================
-   DADOS — atualize aqui
-   ===================================================================== */
-const DADOS = /*==DADOS-INICIO==*/{
-  titulo: "Painel Institucional — Matrículas 2026",
-  subtitulo: "Colégio Marista Paranaense",
-  atualizadoEm: "25/11/2026",
-  // Digite só META e REALIZADO. Porcentagens, "Faltam" e o total são calculados sozinhos.
-  rematricula: { meta: 2705, realizado: 2626 },
-  novas:       { meta: 427,  realizado: 379  },
-
-  // somaNoTotal: true → o segmento entra na "Meta total de matrículas"
-  segmentos: [
-    { nome: "Educação Infantil", meta: 562,  realizado: 451,  somaNoTotal: true  },
-    { nome: "Anos Iniciais",     meta: 746,  realizado: 708,  somaNoTotal: true  },
-    { nome: "Anos Finais",       meta: 975,  realizado: 1036, somaNoTotal: true  },
-    { nome: "Ensino Médio",      meta: 849,  realizado: 811,  somaNoTotal: true  },
-    { nome: "NAC",               meta: 1510, realizado: 1300, somaNoTotal: false },
-    { nome: "Integral",          meta: 215,  realizado: 180,  somaNoTotal: false },
-    { nome: "Plus",              meta: 100,  realizado: 68,   somaNoTotal: false },
-    { nome: "M. Idiomas",        meta: 290,  realizado: 135,  somaNoTotal: false },
-  ],
-  // Mensagens do letreiro no rodapé
-  avisos: [
-    "Rematrículas 2026 abertas — procure a secretaria da sua unidade",
-    "Indique um amigo e ajude a nossa escola a crescer",
-    "Agende uma visita e conheça nossos espaços",
-  ],
-}/*==DADOS-FIM==*/;
-/* =====================================================================
-   TELAS DO LOOP — adicione, remova ou reordene à vontade
-   tipo:  "painel" → o painel de matrículas acima
-          "imagem" → PNG/JPG (ex.: arte exportada do Canva)
-          "video"  → MP4 (tempo: "fim" = troca quando o vídeo acaba)
-          "site"   → qualquer página web (ex.: site do Canva)
-          "aviso"  → tela de texto pronta, no visual do painel
-   tempo: segundos na tela
-   cheia: true = ocupa a TV inteira (sem cabeçalho e rodapé)
-   ajustar: true = imagem/vídeo preenche a tela cortando as bordas
-   Dica: arquivos de imagem/vídeo podem ficar na mesma pasta do HTML
-         (ex.: src:"campanha.png") ou ser um link https completo.
-   ===================================================================== */
-const TELAS = [
-  { tipo: "painel", tempo: 40 },
-  { tipo: "imagem", tempo: 180, src: "NATAL", cheia: true },   // Celebração de Natal — 3 min (arte embutida no fim do arquivo)
-  { tipo: "aviso",  tempo: 15, tag: "Campanha", titulo: "Rematrículas 2026 abertas",
-    texto: "Garanta a vaga do seu filho com condições especiais. Procure a secretaria da sua unidade." },
-  // { tipo: "imagem", tempo: 15, src: "campanha-irmaos.png", cheia: true },
-  // { tipo: "video",  tempo: "fim", src: "institucional.mp4", cheia: true },
-  // { tipo: "site",   tempo: 30, src: "https://maristapr.my.canva.site/mat26", cheia: true },
-];
-
-const AJUSTES = { destaqueSeg: 5, recarregarMin: 60 };
-/* ===================================================================== */
-</script>
 </head>
 <body>
 <div id="stage">
@@ -275,7 +279,7 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 60 };
 <script>
 
 const $ = s => document.querySelector(s);
-const nf = n => n.toLocaleString("pt-BR");
+const nf = n => String(Math.round(n));
 const pc = (r,m) => m ? r/m*100 : 0;
 const pf = p => p.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1}) + "%";
 const cor = p => p>=100 ? "var(--ok)" : p>=90 ? "var(--sky)" : p>=70 ? "var(--warn)" : "var(--low)";
