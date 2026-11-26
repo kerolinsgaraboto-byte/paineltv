@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administração de Matrículas</title>
+<style>
+body{font-family:Segoe UI,Arial,sans-serif;background:#f4f6f9;margin:0;padding:30px}
+.container{max-width:1200px;margin:auto;display:grid;grid-template-columns:400px 1fr;gap:20px}
+.card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+h1{margin-top:0;color:#003b5c}
+label{display:block;margin-top:10px;font-weight:600}
+input,select,button{width:100%;padding:10px;margin-top:5px;border:1px solid #ccc;border-radius:8px}
+button{background:#003b5c;color:#fff;border:none;cursor:pointer}
+button:hover{background:#00507c}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+pre{background:#f7f7f7;padding:15px;border-radius:8px;overflow:auto}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="card">
+<h1>Painel Administrativo</h1>
+<label>Segmento</label>
+<select id="segmento"></select>
+<label>Meta</label>
+<input type="number" id="meta">
+<label>Realizado</label>
+<input type="number" id="realizado">
+<label>Somar no Total</label>
+<select id="soma">
+<option value="true">Sim</option>
+<option value="false">Não</option>
+</select>
+<button onclick="salvar()">Salvar Alterações</button>
+<button onclick="baixarJson()">Exportar JSON</button>
+</div>
+
+
+<div class="card">
+<h1>Dados Atuais</h1>
+<table>
+<thead>
+<tr>
+<th>Segmento</th>
+<th>Meta</th>
+<th>Realizado</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody id="tabela"></tbody>
+</table>
+
+
+<h2>JSON para copiar ao GitHub</h2>
+<pre id="json"></pre>
+</div>
+
+
+</div>
+
+
+<script>
+const dados = [
+ { nome:'Educação Infantil', meta:562, realizado:451, somaNoTotal:true },
+ { nome:'Anos Iniciais', meta:746, realizado:708, somaNoTotal:true },
+ { nome:'Anos Finais', meta:975, realizado:1036, somaNoTotal:true },
+ { nome:'Ensino Médio', meta:849, realizado:811, somaNoTotal:true },
+ { nome:'NAC', meta:1510, realizado:1300, somaNoTotal:false },
+ { nome:'Integral', meta:215, realizado:180, somaNoTotal:false },
+ { nome:'Marista Idiomas', meta:290, realizado:135, somaNoTotal:false },
+ { nome:'Plus', meta:100, realizado:68, somaNoTotal:false }
+];
+
+
+const select=document.getElementById('segmento');
+
+
+dados.forEach((d,i)=>{
+ const op=document.createElement('option');
+ op.value=i;
+ op.textContent=d.nome;
+ select.appendChild(op);
+});
+
+
+function carregar(){
+ const item=dados[select.value];
+ meta.value=item.meta;
+ realizado.value=item.realizado;
+ soma.value=item.somaNoTotal;
+}
+
+function salvar(){
+ const item=dados[select.value];
+ item.meta=Number(meta.value);
+ item.realizado=Number(realizado.value);
+ item.somaNoTotal=soma.value==='true';
+ render();
+ localStorage.setItem('matriculas',JSON.stringify(dados));
+}
+
+function render(){
+ tabela.innerHTML='';
+ dados.forEach(d=>{
+  tabela.innerHTML+=`<tr>
+   <td>${d.nome}</td>
+   <td>${d.meta}</td>
+   <td>${d.realizado}</td>
+   <td>${d.somaNoTotal?'Sim':'Não'}</td>
+  </tr>`;
+ });
+ json.textContent=JSON.stringify(dados,null,2);
+}
+
+function baixarJson(){
+ const blob=new Blob([JSON.stringify(dados,null,2)],{type:'application/json'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='dados-matriculas.json';
+ a.click();
+}
+
+select.addEventListener('change',carregar);
+
+const salvo=localStorage.getItem('matriculas');
+if(salvo){
+ const tmp=JSON.parse(salvo);
+ dados.splice(0,dados.length,...tmp);
+}
+
+render();
+carregar();
+</script>
+</body>
+</html>
