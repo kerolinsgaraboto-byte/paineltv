@@ -256,6 +256,8 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 10, zoom: 0.98 };
   #editor .perigo{color:#a52b2b;border-color:#e7bcbc}
   #editor .nota{font-size:12px;color:#667b94;line-height:1.45;margin-top:10px}
   #editor input[type=file]{padding:8px;background:#f7f9fb}
+  #editor .acao.perigo{white-space:nowrap}
+  #campAtualInfo{font-weight:600;color:#173e6e;margin:8px 0}
   #campPreview{display:none;max-width:100%;max-height:260px;object-fit:contain;border:1px solid #dbe5f1;border-radius:8px;margin-top:10px}
   @media(max-width:800px){#editor .segmentos-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:600px){#editor .janela{padding:15px}#editor .duas,#editor .segmentos-grid{grid-template-columns:1fr}#editor .campos-par{grid-template-columns:1fr 1fr}#editFab{right:12px;bottom:12px}}
@@ -376,6 +378,11 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 10, zoom: 0.98 };
       <label for="campArquivo">Anexar imagem da campanha (PNG, JPG ou WEBP)</label>
       <input id="campArquivo" type="file" accept="image/png,image/jpeg,image/webp">
       <img id="campPreview" alt="Prévia da campanha">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="acao perigo" id="excluirImagemAnexada" type="button">Excluir imagem anexada</button>
+        <button class="acao perigo" id="excluirCampanhaAtual" type="button">Excluir campanha publicada</button>
+      </div>
+      <p class="nota" id="campAtualInfo">Nenhuma campanha publicada.</p>
       <div class="duas" style="margin-top:10px">
         <div><label for="campTempo">Tempo de exibição desta campanha (segundos)</label><input id="campTempo" type="number" min="1" step="1" value="30"></div>
         <div><label class="check"><input id="campCheia" type="checkbox" checked> Exibir em tela cheia</label></div>
@@ -619,14 +626,14 @@ function preencherEditor(){
   $("#edRemReal").value=DADOS.rematricula?.realizado??0;
   $("#edNovMeta").value=DADOS.novas?.meta??0;
   $("#edNovReal").value=DADOS.novas?.realizado??0;
-  desenharSegmentos(); desenharSlides();
+  desenharSegmentos(); desenharSlides(); atualizarInfoCampanha();
 }
 function desenharSegmentos(){
   $("#edSegmentos").innerHTML="";
   DADOS.segmentos.forEach((seg,i)=>{
     const div=document.createElement("div"); div.className="segmento-card";
     div.innerHTML=`<strong>${esc(seg.nome)}</strong>
-      <button class="acao perigo" type="button" title="Remover segmento" aria-label="Remover segmento">×</button>
+      <button class="acao perigo" type="button" title="Excluir este segmento" aria-label="Excluir este segmento">Excluir</button>
       <div class="campos-par">
         <div><label>Meta</label><input data-s="meta" type="number" min="0" value="${Number(seg.meta)||0}"></div>
         <div><label>Realizado</label><input data-s="realizado" type="number" min="0" value="${Number(seg.realizado)||0}"></div>
@@ -654,7 +661,7 @@ function desenharSlides(){
         <button class="acao" data-replace="1" type="button">Substituir</button>
         <button class="acao" data-move="-1" type="button" ${i===0?"disabled":""}>↑</button>
         <button class="acao" data-move="1" type="button" ${i===TELAS.length-1?"disabled":""}>↓</button>
-        <button class="acao perigo" data-del="1" type="button">Excluir</button>
+        <button class="acao perigo" data-del="1" type="button" title="Excluir este item">Excluir</button>
       </div>`;
     div.querySelector('[data-edit]').onclick=()=>editarTela(i,false);
     div.querySelector('[data-replace]').onclick=()=>editarTela(i,true);
@@ -704,6 +711,32 @@ function aplicarAlteracoes(){
   const idx=Math.max(0,Math.min(atual,TELAS.length-1));
   montarTelas(); atual=-1; mostrar(idx);
 }
+function atualizarInfoCampanha(){
+  const idx=TELAS.findIndex(t=>t.campanha);
+  const info=$("#campAtualInfo");
+  if(!info)return;
+  if(idx<0){info.textContent="Nenhuma campanha publicada.";return;}
+  const t=TELAS[idx];
+  info.textContent=`Campanha publicada: ${t.campanha||"Campanha atual"} · ${t.tempo||15} segundos`;
+}
+$("#excluirImagemAnexada").addEventListener("click",()=>{
+  campanhaDataUrl="";
+  $("#campArquivo").value="";
+  $("#campPreview").removeAttribute("src");
+  $("#campPreview").style.display="none";
+  $("#campSrc").value="";
+  $("#campStatus").textContent="Imagem anexada removida do formulário.";
+});
+$("#excluirCampanhaAtual").addEventListener("click",()=>{
+  const idx=TELAS.findIndex(t=>t.campanha);
+  if(idx<0){alert("Não há campanha publicada para excluir.");return;}
+  if(!confirm("Deseja excluir a campanha publicada?"))return;
+  TELAS.splice(idx,1);
+  aplicarAlteracoes();
+  desenharSlides();
+  atualizarInfoCampanha();
+  $("#campStatus").textContent="Campanha publicada excluída.";
+});
 let campanhaDataUrl = "";
 function imagemParaDataURL(file){
   return new Promise((resolve,reject)=>{
@@ -756,8 +789,8 @@ $("#addCampanha").addEventListener("click",()=>{
   $("#campNome").value="";$("#campSrc").value="";$("#campArquivo").value="";
   campanhaDataUrl="";$("#campPreview").removeAttribute("src");$("#campPreview").style.display="none";
   $("#campStatus").textContent=`Campanha publicada. Será exibida por ${tempo} segundos e depois o painel avançará automaticamente para a próxima tela.`;
-  desenharSlides();
-  // A nova campanha entra imediatamente em exibição e não avança sozinha.
+  desenharSlides(); atualizarInfoCampanha();
+  // A nova campanha entra imediatamente em exibição.
   const pos=TELAS.indexOf(nova); montarTelas(); mostrar(pos);
 });
 function limparFormularioTela(){
