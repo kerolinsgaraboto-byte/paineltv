@@ -292,7 +292,7 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 10, zoom: 0.98 };
 const $ = s => document.querySelector(s);
 const nf = n => String(Math.round(n));
 const pc = (r,m) => m ? r/m*100 : 0;
-const pf = p => p.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1}) + "%";
+const pf = p => Math.round(p) + "%";
 const cor = p => p>=100 ? "var(--ok)" : p>=90 ? "var(--sky)" : p>=70 ? "var(--warn)" : "var(--low)";
 
 function contar(el, alvo, ms=1800){
