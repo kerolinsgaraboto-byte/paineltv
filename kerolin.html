@@ -46,7 +46,9 @@ const DADOS = /*==DADOS-INICIO==*/{
   // Exemplo: avisos: ["Celebração de Natal dia 04/12 às 19h30", "Outra mensagem"],
   avisos: [
     "Celebração de Natal — 04/12, das 19h30 às 23h00, na Quadra G5",
-       ],
+    "Bem-vindos ao Colégio Marista Paranaense",
+    "Dúvidas? Fale com a secretaria do colégio",
+  ],
 }/*==DADOS-FIM==*/;
 /* =====================================================================
    TELAS DO LOOP — adicione, remova ou reordene à vontade
@@ -61,13 +63,13 @@ const DADOS = /*==DADOS-INICIO==*/{
    Dica: arquivos de imagem/vídeo podem ficar na mesma pasta do HTML
          (ex.: src:"campanha.png") ou ser um link https completo.
    ===================================================================== */
-const TELAS = [
+const TELAS = /*==TELAS-INICIO==*/[
   { tipo: "painel", tempo: 120 },
   { tipo: "imagem", tempo: 60, src: "NATAL", cheia: true },   // Celebração de Natal (arte embutida no fim do arquivo)
   // { tipo: "imagem", tempo: 15, src: "campanha-irmaos.png", cheia: true },
   // { tipo: "video",  tempo: "fim", src: "institucional.mp4", cheia: true },
   // { tipo: "site",   tempo: 30, src: "https://maristapr.my.canva.site/mat26", cheia: true },
-];
+]/*==TELAS-FIM==*/;
 
 const AJUSTES = { destaqueSeg: 5, recarregarMin: 10, zoom: 0.98 };
 // recarregarMin: a cada 10 min busca números novos
@@ -215,15 +217,47 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 10, zoom: 0.98 };
     font-size:4.5vh;font-weight:800;margin-bottom:4vh;animation:pulsa 1.6s ease-in-out infinite}
   #iniciar h2{font-size:5vh;margin-bottom:2vh} #iniciar p{font-size:2.6vh;color:#a9c3e4}
   @keyframes pulsa{50%{transform:scale(1.12);box-shadow:0 0 0 2vh rgba(111,180,238,.15)}}
-  #keepalive{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;background:#081a33}
+  #keepalive{position:fixed;left:0;top:0;width:2px;height:2px;opacity:.01;z-index:0;pointer-events:none;background:#081a33}
   body{background:transparent}
+
+  /* Editor administrativo */
+  #editFab{position:fixed;right:18px;bottom:18px;z-index:1001;width:54px;height:54px;border:0;border-radius:50%;
+    background:#173e6e;color:#fff;box-shadow:0 4px 18px #0005;cursor:pointer;display:grid;place-items:center}
+  #editFab svg{width:25px;height:25px}
+  #editor{display:none;position:fixed;inset:0;z-index:1002;background:#07182ddd;color:#17304f;align-items:center;justify-content:center;
+    padding:18px;font-family:inherit;cursor:auto}
+  #editor.aberto{display:flex}
+  #editor .janela{background:#fff;width:min(920px,96vw);max-height:94vh;overflow:auto;border-radius:16px;padding:22px;box-shadow:0 18px 70px #0008}
+  #editor h2{font-size:22px;margin-bottom:5px;color:#0f2f57}
+  #editor .intro{color:#60748c;font-size:13px;margin-bottom:16px;line-height:1.45}
+  #editor .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
+  #editor button,#editor input,#editor select,#editor textarea{font:inherit}
+  #editor .tab,#editor .acao{border:1px solid #cad8e8;border-radius:8px;padding:9px 13px;background:#f5f8fc;color:#173e6e;cursor:pointer}
+  #editor .tab.sel{background:#173e6e;color:white}
+  #editor .pane{display:none}.pane.sel{display:block}
+  #editor label{display:block;font-size:12px;font-weight:700;color:#526780;margin:10px 0 4px}
+  #editor input,#editor select,#editor textarea{width:100%;padding:9px 10px;border:1px solid #cad8e8;border-radius:7px;background:white;color:#17304f}
+  #editor .duas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  #editor .segmento{display:grid;grid-template-columns:1.4fr .7fr .7fr auto;gap:8px;align-items:end;border-bottom:1px solid #e5edf5;padding:6px 0}
+  #editor .segmento label{margin-top:4px}
+  #editor .segmento input{min-width:0}
+  #editor .check{display:flex;align-items:center;gap:7px;font-size:12px;margin:8px 0}
+  #editor .check input{width:auto}
+  #editor .slide{border:1px solid #dbe5f1;border-radius:9px;padding:12px;margin:9px 0;display:grid;grid-template-columns:1fr auto;gap:8px}
+  #editor .slide small{color:#60748c}
+  #editor .rodape-acoes{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px;border-top:1px solid #e5edf5;padding-top:14px}
+  #editor .primario{background:#173e6e;color:white;border-color:#173e6e}
+  #editor .perigo{color:#a52b2b;border-color:#e7bcbc}
+  #editor .nota{font-size:12px;color:#667b94;line-height:1.45;margin-top:10px}
+  @media(max-width:600px){#editor .janela{padding:15px}#editor .duas{grid-template-columns:1fr}#editor .segmento{grid-template-columns:1fr 1fr}#editFab{right:12px;bottom:12px}}
+
 </style>
 </head>
 <body>
 <div id="stage">
   <header>
     <div class="brand"><img class="logo-img" id="logoImg" alt="Colégio Marista Paranaense"><span class="sep"></span>
-      <div><h1 id="titulo"></h1></div></div>
+      <div><h1 id="titulo"></h1><small id="subtitulo"></small></div></div>
     <div class="clock"><div class="t" id="hora">--:--</div><div class="d" id="data"></div></div>
   </header>
 
@@ -287,6 +321,71 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 10, zoom: 0.98 };
   <h2>Pressione OK no controle para iniciar o painel</h2>
   <p>Só é preciso fazer isso uma vez. Depois, o painel roda sozinho e mantém a TV ativa.</p></div></div>
 
+
+<button id="editFab" type="button" aria-label="Editar dados" title="Editar dados e campanhas">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path><circle cx="12" cy="15.5" r="1"></circle>
+  </svg>
+</button>
+<div id="editor" role="dialog" aria-modal="true" aria-labelledby="editorTitulo">
+  <div class="janela">
+    <h2 id="editorTitulo">Área de edição do painel</h2>
+    <p class="intro">Edite indicadores, campanhas e a sequência de telas. As alterações aparecem nesta tela imediatamente. Para distribuir a atualização a outros aparelhos, publique o HTML atualizado no mesmo endereço do painel.</p>
+    <div class="tabs">
+      <button class="tab sel" data-pane="dados" type="button">Dados e gráficos</button>
+      <button class="tab" data-pane="campanhas" type="button">Campanhas futuras</button>
+      <button class="tab" data-pane="telas" type="button">Telas / apresentação</button>
+    </div>
+    <section class="pane sel" id="pane-dados">
+      <div class="duas">
+        <div><label for="edTitulo">Título do painel</label><input id="edTitulo"></div>
+        <div><label for="edSubtitulo">Subtítulo</label><input id="edSubtitulo"></div>
+        <div><label for="edAtualizado">Atualizado em</label><input id="edAtualizado" placeholder="27/11/2026"></div>
+        <div><label for="edAvisos">Avisos (um por linha)</label><textarea id="edAvisos" rows="2"></textarea></div>
+      </div>
+      <h3 style="margin-top:16px;color:#173e6e">Indicadores</h3>
+      <div class="duas">
+        <div><label for="edRemMeta">Rematrícula — meta</label><input id="edRemMeta" type="number"></div>
+        <div><label for="edRemReal">Rematrícula — realizado</label><input id="edRemReal" type="number"></div>
+        <div><label for="edNovMeta">Matrículas novas — meta</label><input id="edNovMeta" type="number"></div>
+        <div><label for="edNovReal">Matrículas novas — realizado</label><input id="edNovReal" type="number"></div>
+      </div>
+      <h3 style="margin-top:16px;color:#173e6e">Segmentos do gráfico</h3>
+      <div id="edSegmentos"></div>
+      <button class="acao" id="addSegmento" type="button" style="margin-top:10px">+ Adicionar segmento</button>
+    </section>
+    <section class="pane" id="pane-campanhas">
+      <p class="nota">Cadastre a campanha com uma imagem PNG/JPG ou endereço HTTPS. A campanha será adicionada como uma nova tela de imagem na apresentação.</p>
+      <label for="campNome">Nome da campanha</label><input id="campNome" placeholder="Ex.: Campanha de rematrículas">
+      <label for="campSrc">Imagem da campanha (URL ou caminho do arquivo)</label><input id="campSrc" placeholder="Ex.: campanha-2027.jpg ou https://...">
+      <div class="duas">
+        <div><label for="campTempo">Tempo na tela (segundos)</label><input id="campTempo" type="number" min="1" value="20"></div>
+        <div><label class="check"><input id="campCheia" type="checkbox" checked> Exibir em tela cheia</label></div>
+      </div>
+      <button class="acao primario" id="addCampanha" type="button" style="margin-top:12px">+ Adicionar campanha à apresentação</button>
+      <p class="nota">Para arquivos locais, mantenha a imagem na mesma pasta do HTML publicado. Para uma imagem online, use um link HTTPS acessível pelo navegador.</p>
+    </section>
+    <section class="pane" id="pane-telas">
+      <p class="nota">Organize uma apresentação em sequência, como slides de PowerPoint. Você pode incluir o painel, imagens, vídeos, páginas web e avisos. Use os controles para reordenar ou remover cada tela.</p>
+      <div id="edSlides"></div>
+      <div class="duas" style="margin-top:12px">
+        <div><label for="novoTipo">Tipo de nova tela</label><select id="novoTipo"><option value="imagem">Imagem</option><option value="aviso">Aviso / slide de texto</option><option value="video">Vídeo</option><option value="site">Página web</option><option value="painel">Painel de gráficos</option></select></div>
+        <div><label for="novoTempo">Duração (segundos)</label><input id="novoTempo" type="number" min="1" value="20"></div>
+      </div>
+      <label for="novoSrc">Arquivo ou URL (imagem, vídeo ou site)</label><input id="novoSrc" placeholder="https://... ou arquivo.mp4">
+      <label for="novoTitulo">Título (para slide de aviso)</label><input id="novoTitulo">
+      <label for="novoTexto">Texto (para slide de aviso)</label><textarea id="novoTexto" rows="2"></textarea>
+      <button class="acao" id="addTela" type="button" style="margin-top:10px">+ Adicionar tela à apresentação</button>
+    </section>
+    <div class="rodape-acoes">
+      <button class="acao" id="fecharEditor" type="button">Fechar</button>
+      <button class="acao" id="baixarHTML" type="button">Baixar HTML atualizado</button>
+      <button class="acao primario" id="salvarEditor" type="button">Salvar e atualizar painel</button>
+    </div>
+    <p class="nota">Sincronização: esta aba avisa outras abas abertas no mesmo navegador. Os demais dispositivos recebem os dados quando a versão atualizada é publicada no servidor; o painel consulta o endereço periodicamente.</p>
+  </div>
+</div>
+
 <script>
 
 const $ = s => document.querySelector(s);
@@ -307,6 +406,7 @@ function render(){
   const T = { meta: somam.reduce((a,s)=>a+(+s.meta||0),0), realizado: somam.reduce((a,s)=>a+(+s.realizado||0),0) };
   const pT = pc(T.realizado,T.meta);
   $("#titulo").textContent = D.titulo;
+  $("#subtitulo").textContent = D.subtitulo || "";
   $("#upd").textContent = "Atualizado em " + D.atualizadoEm;
   const v = {meta:T.meta, real:T.realizado, falta:Math.max(T.meta-T.realizado,0)};
   document.querySelectorAll("[data-n]").forEach(el=>contar(el, v[el.dataset.n]));
@@ -430,8 +530,8 @@ let wl = null;
 let liberado = false;
 function liberar(){
   if(liberado) return; liberado = true;
-  const v = $("#keepalive"); v.muted = false; v.volume = 1;   // a faixa de áudio é silenciosa
-  v.play().catch(()=>{ v.muted = true; v.play().catch(()=>{}); });
+  const v = $("#keepalive"); v.muted = true; v.volume = 0;
+  v.play().catch(()=>{ $("#iniciar").style.display = "flex"; });
   $("#iniciar").style.display = "none";
   if("mediaSession" in navigator){
     try{ navigator.mediaSession.metadata = new MediaMetadata({title:"Painel de Matrículas", artist:"Colégio Marista Paranaense"});
@@ -443,30 +543,173 @@ document.addEventListener("keydown", liberar, true);
 document.addEventListener("click", liberar, true);
 async function acordado(){
   try{ if("wakeLock" in navigator && !wl){ wl = await navigator.wakeLock.request("screen"); wl.onrelease = ()=>wl=null; } }catch(e){}
-  const v = $("#keepalive"); if(liberado){ v.muted = false; v.volume = 1; } if(v.paused) v.play().catch(()=>{});
+  const v = $("#keepalive"); v.muted = true; v.volume = 0;
+  if(v.paused) v.play().catch(()=>{});
 }
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) acordado(); });
 document.addEventListener("keydown", acordado);
 setInterval(acordado, 30000);
 let ultimoT = -1;
 setInterval(()=>{ const v = $("#keepalive"); if(v.currentTime===ultimoT){ v.load(); v.play().catch(()=>{}); } ultimoT = v.currentTime; }, 20000);
-// Atualiza os DADOS sem recarregar a página (recarregar exigiria apertar OK de novo)
+
+// Atualização periódica do conteúdo publicado (dados e sequência de telas).
+function extrairConstante(texto, inicio, fim){
+  const a = texto.indexOf(inicio), b = texto.indexOf(fim);
+  if(a < 0 || b < 0 || b <= a) return null;
+  return new Function("return (" + texto.slice(a + inicio.length, b).trim().replace(/;$/, "") + ")")();
+}
 async function atualizarDados(){
   try{
-    const txt = await (await fetch(location.pathname + "?t=" + Date.now(), {cache:"no-store"})).text();
-    const a = txt.indexOf("/*==DADOS-INICIO==*/"), b = txt.indexOf("/*==DADOS-FIM==*/");
-    if(a < 0 || b < 0) return;
-    const novo = new Function("return " + txt.slice(a + 20, b))();
-    if(novo && novo.segmentos){ Object.assign(DADOS, novo); if(TELAS[atual] && TELAS[atual].tipo==="painel") render(); }
-  }catch(e){}
+    const resp = await fetch(location.pathname + "?atualizacao=" + Date.now(), {cache:"no-store"});
+    if(!resp.ok) return;
+    const txt = await resp.text();
+    const novo = extrairConstante(txt, "/*==DADOS-INICIO==*/", "/*==DADOS-FIM==*/");
+    const novasTelas = extrairConstante(txt, "/*==TELAS-INICIO==*/", "/*==TELAS-FIM==*/");
+    let mudou = false;
+    if(novo && novo.segmentos){ Object.assign(DADOS, novo); mudou = true; }
+    if(Array.isArray(novasTelas) && JSON.stringify(novasTelas)!==JSON.stringify(TELAS)){
+      TELAS.splice(0, TELAS.length, ...novasTelas); montarTelas(); atual = -1; mostrar(0); mudou = true;
+    }
+    if(mudou && TELAS[atual]?.tipo==="painel") render();
+  }catch(e){ console.warn("Não foi possível sincronizar o painel:", e); }
 }
 setInterval(atualizarDados, AJUSTES.recarregarMin*60000);
+
+// Editor protegido pelo botão de cadeado.
+let editando = false;
+const clone = obj => JSON.parse(JSON.stringify(obj));
+function abrirEditor(){
+  editando = true;
+  $("#editor").classList.add("aberto");
+  preencherEditor();
+}
+function fecharEditor(){ $("#editor").classList.remove("aberto"); editando=false; }
+function preencherEditor(){
+  $("#edTitulo").value=DADOS.titulo||"";
+  $("#edSubtitulo").value=DADOS.subtitulo||"";
+  $("#edAtualizado").value=DADOS.atualizadoEm||"";
+  $("#edAvisos").value=(DADOS.avisos||[]).join("\n");
+  $("#edRemMeta").value=DADOS.rematricula?.meta??0;
+  $("#edRemReal").value=DADOS.rematricula?.realizado??0;
+  $("#edNovMeta").value=DADOS.novas?.meta??0;
+  $("#edNovReal").value=DADOS.novas?.realizado??0;
+  desenharSegmentos(); desenharSlides();
+}
+function desenharSegmentos(){
+  $("#edSegmentos").innerHTML="";
+  DADOS.segmentos.forEach((s,i)=>{
+    const div=document.createElement("div"); div.className="segmento";
+    div.innerHTML=`<div><label>Nome</label><input data-s="nome" value="${esc(s.nome)}"></div>
+      <div><label>Meta</label><input data-s="meta" type="number" value="${Number(s.meta)||0}"></div>
+      <div><label>Realizado</label><input data-s="realizado" type="number" value="${Number(s.realizado)||0}"></div>
+      <button class="acao perigo" type="button" title="Remover segmento">×</button>
+      <label class="check" style="grid-column:1/-1"><input data-s="somaNoTotal" type="checkbox" ${s.somaNoTotal?"checked":""}> Incluir na meta total</label>`;
+    div.querySelector("button").onclick=()=>{DADOS.segmentos.splice(i,1);desenharSegmentos();};
+    div.querySelectorAll("[data-s]").forEach(inp=>inp.addEventListener("change",()=>{
+      const k=inp.dataset.s; s[k]=k==="somaNoTotal"?inp.checked:(k==="nome"?inp.value:Number(inp.value)||0);
+      render();
+    }));
+    $("#edSegmentos").appendChild(div);
+  });
+}
+function desenharSlides(){
+  const box=$("#edSlides"); box.innerHTML="";
+  TELAS.forEach((t,i)=>{
+    const div=document.createElement("div"); div.className="slide";
+    const desc=t.tipo==="aviso"?(t.titulo||"Slide de aviso"):t.tipo==="painel"?"Painel de gráficos":(t.src||"Sem arquivo");
+    div.innerHTML=`<div><b>${i+1}. ${esc(t.tipo.toUpperCase())}</b><br><small>${esc(desc)} · ${t.tempo==="fim"?"até terminar":(t.tempo||15)+" s"}</small></div>
+      <div style="display:flex;gap:5px;align-items:center"><button class="acao" data-move="-1" type="button" ${i===0?"disabled":""}>↑</button><button class="acao" data-move="1" type="button" ${i===TELAS.length-1?"disabled":""}>↓</button><button class="acao perigo" data-del="1" type="button">Excluir</button></div>`;
+    div.querySelector('[data-move="-1"]').onclick=()=>moverTela(i,-1);
+    div.querySelector('[data-move="1"]').onclick=()=>moverTela(i,1);
+    div.querySelector('[data-del]').onclick=()=>{if(TELAS.length===1){alert("Mantenha ao menos uma tela.");return;}TELAS.splice(i,1);desenharSlides();};
+    box.appendChild(div);
+  });
+}
+function moverTela(i,d){const j=i+d;if(j<0||j>=TELAS.length)return;[TELAS[i],TELAS[j]]=[TELAS[j],TELAS[i]];desenharSlides();}
+function coletarEditor(){
+  DADOS.titulo=$("#edTitulo").value.trim()||DADOS.titulo;
+  DADOS.subtitulo=$("#edSubtitulo").value.trim();
+  DADOS.atualizadoEm=$("#edAtualizado").value.trim();
+  DADOS.avisos=$("#edAvisos").value.split("\n").map(x=>x.trim()).filter(Boolean);
+  DADOS.rematricula={meta:Number($("#edRemMeta").value)||0,realizado:Number($("#edRemReal").value)||0};
+  DADOS.novas={meta:Number($("#edNovMeta").value)||0,realizado:Number($("#edNovReal").value)||0};
+  // Os segmentos já são atualizados nos campos; sincroniza valores atuais antes de salvar.
+  document.querySelectorAll("#edSegmentos .segmento").forEach((el,i)=>{
+    const s=DADOS.segmentos[i]; if(!s)return;
+    el.querySelectorAll("[data-s]").forEach(inp=>{const k=inp.dataset.s;s[k]=k==="somaNoTotal"?inp.checked:(k==="nome"?inp.value:Number(inp.value)||0);});
+  });
+}
+function aplicarAlteracoes(){
+  coletarEditor();
+  render(); $("#upd").textContent="Atualizado em "+DADOS.atualizadoEm;
+  letreiro();
+  try{localStorage.setItem("painel-matr-2026",JSON.stringify({DADOS,TELAS}));}catch(e){}
+  if("BroadcastChannel" in window){try{const bc=new BroadcastChannel("painel-matr-2026");bc.postMessage({DADOS,TELAS});bc.close();}catch(e){}}
+  // Reconstrói as telas e preserva o índice selecionado quando possível.
+  const idx=Math.max(0,Math.min(atual,TELAS.length-1));
+  montarTelas(); atual=-1; mostrar(idx);
+}
+$("#editFab").addEventListener("click",abrirEditor);
+$("#fecharEditor").addEventListener("click",fecharEditor);
+$("#editor").addEventListener("click",e=>{if(e.target.id==="editor")fecharEditor();});
+document.querySelectorAll("#editor .tab").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll("#editor .tab").forEach(x=>x.classList.toggle("sel",x===btn));
+  document.querySelectorAll("#editor .pane").forEach(x=>x.classList.toggle("sel",x.id==="pane-"+btn.dataset.pane));
+}));
+$("#addSegmento").addEventListener("click",()=>{DADOS.segmentos.push({nome:"Novo segmento",meta:0,realizado:0,somaNoTotal:false});desenharSegmentos();});
+$("#addCampanha").addEventListener("click",()=>{
+  const nome=$("#campNome").value.trim(), src=$("#campSrc").value.trim(), tempo=Math.max(1,Number($("#campTempo").value)||20);
+  if(!src){alert("Informe a URL ou o caminho da imagem.");return;}
+  TELAS.push({tipo:"imagem",tempo,src,cheia:$("#campCheia").checked, campanha:nome});
+  $("#campNome").value="";$("#campSrc").value="";desenharSlides();
+  document.querySelector('[data-pane="telas"]').click();
+});
+$("#addTela").addEventListener("click",()=>{
+  const tipo=$("#novoTipo").value, tempo=Math.max(1,Number($("#novoTempo").value)||20);
+  const t={tipo,tempo};
+  if(tipo==="imagem"||tipo==="video"||tipo==="site"){t.src=$("#novoSrc").value.trim();if(!t.src){alert("Informe o arquivo ou URL.");return;}t.cheia=true;}
+  if(tipo==="aviso"){t.titulo=$("#novoTitulo").value.trim()||"Aviso";t.texto=$("#novoTexto").value.trim();}
+  if(tipo==="painel") t.tempo=tempo;
+  TELAS.push(t);$("#novoSrc").value="";$("#novoTitulo").value="";$("#novoTexto").value="";desenharSlides();
+});
+$("#salvarEditor").addEventListener("click",()=>{aplicarAlteracoes();alert("Painel atualizado nesta tela. Para atualizar outros dispositivos, baixe e publique o HTML atualizado.");});
+function gerarHTMLAtualizado(){
+  coletarEditor();
+  let html=document.documentElement.outerHTML;
+  const substituir=(a,b,obj)=>{
+    const ini=html.indexOf(a), fim=html.indexOf(b);
+    if(ini<0||fim<0)return;
+    html=html.slice(0,ini+a.length)+"\n"+JSON.stringify(obj,null,2)+"\n"+html.slice(fim);
+  };
+  substituir("/*==DADOS-INICIO==*/","/*==DADOS-FIM==*/",DADOS);
+  substituir("/*==TELAS-INICIO==*/","/*==TELAS-FIM==*/",TELAS);
+  return "<!DOCTYPE html>\n"+html;
+}
+$("#baixarHTML").addEventListener("click",()=>{
+  const blob=new Blob([gerarHTMLAtualizado()],{type:"text/html;charset=utf-8"});
+  const url=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=url;a.download="painel-institucional-atualizado.html";a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+});
+if("BroadcastChannel" in window){
+  const canal=new BroadcastChannel("painel-matr-2026");
+  canal.onmessage=e=>{if(e.data?.DADOS?.segmentos){Object.assign(DADOS,e.data.DADOS);if(Array.isArray(e.data.TELAS))TELAS.splice(0,TELAS.length,...e.data.TELAS);render();montarTelas();atual=-1;mostrar(0);}};
+}
+try{
+  const salvo=JSON.parse(localStorage.getItem("painel-matr-2026")||"null");
+  if(salvo?.DADOS?.segmentos){Object.assign(DADOS,salvo.DADOS);if(Array.isArray(salvo.TELAS))TELAS.splice(0,TELAS.length,...salvo.TELAS);}
+}catch(e){}
 
 function iniciar(){
   $("#logoImg").src = LOGO_BRANCO;
   document.documentElement.style.setProperty("--zoom", AJUSTES.zoom || 1);
-  $("#keepalive").src = VIDEO_KEEPALIVE;
+  const keep=$("#keepalive");
+  keep.muted=true; keep.volume=0; keep.loop=true; keep.src=VIDEO_KEEPALIVE;
+  keep.addEventListener("ended",()=>{keep.currentTime=0;keep.play().catch(()=>{});});
+  keep.addEventListener("error",()=>{setTimeout(()=>{keep.load();keep.play().catch(()=>{});},3000);});
   montarTelas(); mostrar(0); tick(); setInterval(tick,1000); letreiro(); acordado();
+  // Mantém o vídeo auxiliar em reprodução contínua e revalida a cada 24 horas.
+  setInterval(()=>{if(liberado){if(keep.paused){keep.currentTime=0;keep.play().catch(()=>{});}else{try{keep.currentTime=0;keep.play().catch(()=>{});}catch(e){}}}},24*60*60*1000);
 }
 </script>
 
