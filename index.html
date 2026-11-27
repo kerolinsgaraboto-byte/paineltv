@@ -292,7 +292,7 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 10, zoom: 0.98 };
 const $ = s => document.querySelector(s);
 const nf = n => String(Math.round(n));
 const pc = (r,m) => m ? r/m*100 : 0;
-const pf = p => Math.round(p) + "%";
+const pf = p => p.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1}) + "%";
 const cor = p => p>=100 ? "var(--ok)" : p>=90 ? "var(--sky)" : p>=70 ? "var(--warn)" : "var(--low)";
 
 function contar(el, alvo, ms=1800){
@@ -326,7 +326,7 @@ function render(){
   $("#grid").innerHTML = D.segmentos.map(({nome:n,realizado:r,meta:m})=>{ r=+r||0; m=+m||0; const p = pc(r,m);
     return `<div class="seg">
       <div class="top"><div class="n">${n}</div><div class="p" style="color:${p>=100?'var(--ok)':'var(--ink)'}">${pf(p)}</div></div>
-      <div><div class="s"><span><b>${nf(r)}</b> realizados · meta ${nf(m)}</span>${p>=100?'<span class="badge">✓ META BATIDA</span>'
+      <div><div class="s"><span><b>${nf(r)}</b> realizados · meta ${nf(m)}</span>${p>=100?'<span class="badge">✓ META BATIDA</span>':''}</div>
       <div class="sbar"><i data-w="${Math.min(p,100)}" style="background:${cor(p)}"></i></div></div></div>`; }).join("");
 
   requestAnimationFrame(()=>setTimeout(()=>{
