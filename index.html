@@ -27,19 +27,19 @@ const DADOS = /*==DADOS-INICIO==*/{
   subtitulo: "Colégio Marista Paranaense",
   atualizadoEm: "25/11/2026",
   // Digite só META e REALIZADO. Porcentagens, "Faltam" e o total são calculados sozinhos.
-  rematricula: { meta: 2705, realizado: 2639 },
-  novas:       { meta: 427,  realizado: 381  },
+  rematricula: { meta: 2705, realizado: 2641 },
+  novas:       { meta: 427,  realizado: 383  },
 
   // Ordem na tela: os 4 primeiros formam a coluna 1, os 4 seguintes a coluna 2.
   // somaNoTotal: true → o segmento entra na "Meta total de matrículas"
   segmentos: [
-    { nome: "Educação Infantil", meta: 562,  realizado: 453,  somaNoTotal: true  },
-    { nome: "Anos Iniciais",     meta: 746,  realizado: 709,  somaNoTotal: true  },
+    { nome: "Educação Infantil", meta: 562,  realizado: 454,  somaNoTotal: true  },
+    { nome: "Anos Iniciais",     meta: 746,  realizado: 710,  somaNoTotal: true  },
     { nome: "Anos Finais",       meta: 975,  realizado: 1039, somaNoTotal: true  },
-    { nome: "Ensino Médio",      meta: 849,  realizado: 819,  somaNoTotal: true  },
-    { nome: "NAC",               meta: 1510, realizado: 1303, somaNoTotal: false },
+    { nome: "Ensino Médio",      meta: 849,  realizado: 821,  somaNoTotal: true  },
+    { nome: "NAC",               meta: 1510, realizado: 1319, somaNoTotal: false },
     { nome: "Integral",          meta: 215,  realizado: 181,  somaNoTotal: false },
-    { nome: "Marista Idiomas",   meta: 290,  realizado: 138,  somaNoTotal: false },
+    { nome: "Marista Idiomas",   meta: 290,  realizado: 139,  somaNoTotal: false },
     { nome: "Plus",              meta: 100,  realizado: 69,   somaNoTotal: false },
   ],
   // Mensagens do letreiro no rodapé. Deixe vazio [] para não passar nada.
@@ -326,7 +326,7 @@ function render(){
   $("#grid").innerHTML = D.segmentos.map(({nome:n,realizado:r,meta:m})=>{ r=+r||0; m=+m||0; const p = pc(r,m);
     return `<div class="seg">
       <div class="top"><div class="n">${n}</div><div class="p" style="color:${p>=100?'var(--ok)':'var(--ink)'}">${pf(p)}</div></div>
-      <div><div class="s"><span><b>${nf(r)}</b> realizados · meta ${nf(m)}</span>${p>=100?'<span class="badge">✓ META BATIDA</span>':''}</div>
+      <div><div class="s"><span><b>${nf(r)}</b> realizados · meta ${nf(m)}</span>${p>=100?'<span class="badge">🏅 META BATIDA</span>
       <div class="sbar"><i data-w="${Math.min(p,100)}" style="background:${cor(p)}"></i></div></div></div>`; }).join("");
 
   requestAnimationFrame(()=>setTimeout(()=>{
