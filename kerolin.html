@@ -234,7 +234,7 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 10, zoom: 0.98 };
   #editor button,#editor input,#editor select,#editor textarea{font:inherit}
   #editor .tab,#editor .acao{border:1px solid #cad8e8;border-radius:8px;padding:9px 13px;background:#f5f8fc;color:#173e6e;cursor:pointer}
   #editor .tab.sel{background:#173e6e;color:white}
-  #editor .pane{display:none}.pane.sel{display:block}
+  #editor .pane{display:none}#editor .pane.sel{display:block}
   #editor label{display:block;font-size:12px;font-weight:700;color:#526780;margin:10px 0 4px}
   #editor input,#editor select,#editor textarea{width:100%;padding:9px 10px;border:1px solid #cad8e8;border-radius:7px;background:white;color:#17304f}
   #editor .duas{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -247,8 +247,6 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 10, zoom: 0.98 };
   #editor .segmento-card .campos-par{grid-column:1/-1}
   #editor .segmento-card label{margin-top:4px}
   #editor .segmento-card input{min-width:0}
-  #editor .segmento label{margin-top:4px}
-  #editor .segmento input{min-width:0}
   #editor .check{display:flex;align-items:center;gap:7px;font-size:12px;margin:8px 0}
   #editor .check input{width:auto}
   #editor .slide{border:1px solid #dbe5f1;border-radius:9px;padding:12px;margin:9px 0;display:grid;grid-template-columns:1fr auto;gap:8px}
@@ -379,15 +377,16 @@ const AJUSTES = { destaqueSeg: 5, recarregarMin: 10, zoom: 0.98 };
       <input id="campArquivo" type="file" accept="image/png,image/jpeg,image/webp">
       <img id="campPreview" alt="Prévia da campanha">
       <div class="duas" style="margin-top:10px">
-        <div><label for="campSrc">Ou informe um endereço de imagem (opcional)</label><input id="campSrc" placeholder="https://..."></div>
+        <div><label for="campTempo">Tempo de exibição desta campanha (segundos)</label><input id="campTempo" type="number" min="1" step="1" value="30"></div>
         <div><label class="check"><input id="campCheia" type="checkbox" checked> Exibir em tela cheia</label></div>
+        <div><label for="campSrc">Ou informe um endereço de imagem (opcional)</label><input id="campSrc" placeholder="https://..."></div>
       </div>
       <button class="acao primario" id="addCampanha" type="button" style="margin-top:12px">Publicar campanha na tela</button>
       <p class="nota">A imagem anexada fica guardada neste navegador e sincroniza automaticamente com as outras abas abertas no mesmo navegador. Para compartilhar com outros aparelhos, use “Baixar HTML atualizado” e publique o arquivo no endereço do painel.</p>
       <p class="nota" id="campStatus" aria-live="polite"></p>
     </section>
     <section class="pane" id="pane-telas">
-      <p class="nota">Organize uma apresentação em sequência, como slides de PowerPoint. Você pode incluir o painel, imagens, vídeos, páginas web e avisos. Use os controles para reordenar ou remover cada tela.</p>
+      <p class="nota">Organize a apresentação em sequência. Em cada item, use Editar para alterar seus dados, Substituir para trocar o conteúdo/tipo da tela ou Excluir para removê-lo. O próprio Painel de gráficos também pode ser editado ou substituído.</p>
       <div id="edSlides"></div>
       <div class="duas" style="margin-top:12px">
         <div><label for="novoTipo">Tipo de nova tela</label><select id="novoTipo"><option value="imagem">Imagem</option><option value="aviso">Aviso / slide de texto</option><option value="video">Vídeo</option><option value="site">Página web</option><option value="painel">Painel de gráficos</option></select></div>
@@ -482,6 +481,10 @@ function montarTelas(){
 }
 
 let atual = -1, t0 = 0, dur = 0, timer = null;
+// Reinicia a sequência a cada 24 horas; ao chegar à última tela, mostrar() também
+// volta naturalmente à primeira, mantendo a apresentação em loop durante o dia.
+const CICLO_APRESENTACAO_24H = 24 * 60 * 60 * 1000;
+setInterval(()=>{ if(TELAS.length){ clearTimeout(timer); mostrar(0); } }, CICLO_APRESENTACAO_24H);
 function mostrar(i){
   const els = document.querySelectorAll(".tela"), n = els.length; if(!n) return;
   const ant = els[atual]; atual = (i+n)%n;
@@ -502,10 +505,10 @@ function mostrar(i){
   if(t.tipo==="video" && t.tempo==="fim" && v){
     dur = 0; v.onended = ()=>mostrar(atual+1);
     v.onerror = ()=>mostrar(atual+1);
-  } else if(t.tempo==="fixo") {
-    dur = 0; // Campanha permanente: só muda quando uma nova campanha é publicada.
   } else {
-    dur = (+t.tempo || 15)*1000; timer = setTimeout(()=>mostrar(atual+1), dur);
+    // Cada tela, inclusive campanhas, permanece pelo tempo configurado e avança sozinha.
+    dur = Math.max(1, Number(t.tempo) || 15)*1000;
+    timer = setTimeout(()=>mostrar(atual+1), dur);
   }
   t0 = Date.now();
 }
@@ -639,18 +642,38 @@ function desenharSegmentos(){
     $("#edSegmentos").appendChild(div);
   });
 }
+let telaEmEdicao = null;
 function desenharSlides(){
   const box=$("#edSlides"); box.innerHTML="";
   TELAS.forEach((t,i)=>{
     const div=document.createElement("div"); div.className="slide";
     const desc=t.tipo==="aviso"?(t.titulo||"Slide de aviso"):t.tipo==="painel"?"Painel de gráficos":(t.src||"Sem arquivo");
-    div.innerHTML=`<div><b>${i+1}. ${esc(t.tipo.toUpperCase())}</b><br><small>${esc(desc)} · ${t.tempo==="fim"?"até terminar":(t.tempo||15)+" s"}</small></div>
-      <div style="display:flex;gap:5px;align-items:center"><button class="acao" data-move="-1" type="button" ${i===0?"disabled":""}>↑</button><button class="acao" data-move="1" type="button" ${i===TELAS.length-1?"disabled":""}>↓</button><button class="acao perigo" data-del="1" type="button">Excluir</button></div>`;
+    div.innerHTML=`<div style="min-width:0;overflow-wrap:anywhere"><b>${i+1}. ${esc(t.tipo.toUpperCase())}${t.campanha?" · CAMPANHA":""}</b><br><small>${esc(desc)} · ${t.tempo==="fim"?"até terminar":(t.tempo||15)+" s"}</small></div>
+      <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+        <button class="acao" data-edit="1" type="button">Editar</button>
+        <button class="acao" data-replace="1" type="button">Substituir</button>
+        <button class="acao" data-move="-1" type="button" ${i===0?"disabled":""}>↑</button>
+        <button class="acao" data-move="1" type="button" ${i===TELAS.length-1?"disabled":""}>↓</button>
+        <button class="acao perigo" data-del="1" type="button">Excluir</button>
+      </div>`;
+    div.querySelector('[data-edit]').onclick=()=>editarTela(i,false);
+    div.querySelector('[data-replace]').onclick=()=>editarTela(i,true);
     div.querySelector('[data-move="-1"]').onclick=()=>moverTela(i,-1);
     div.querySelector('[data-move="1"]').onclick=()=>moverTela(i,1);
-    div.querySelector('[data-del]').onclick=()=>{if(TELAS.length===1){alert("Mantenha ao menos uma tela.");return;}TELAS.splice(i,1);desenharSlides();};
+    div.querySelector('[data-del]').onclick=()=>{if(TELAS.length===1){alert("Mantenha ao menos uma tela.");return;}TELAS.splice(i,1);if(telaEmEdicao===i)telaEmEdicao=null;desenharSlides();};
     box.appendChild(div);
   });
+}
+function editarTela(i, substituir=false){
+  const t=TELAS[i]; telaEmEdicao=i;
+  $("#novoTipo").value=t.tipo;
+  $("#novoTempo").value=t.tempo==="fim"?20:(Number(t.tempo)||20);
+  $("#novoSrc").value=(t.tipo==="imagem"||t.tipo==="video"||t.tipo==="site")?(t.src||""):"";
+  $("#novoTitulo").value=t.titulo||"";
+  $("#novoTexto").value=t.texto||"";
+  $("#addTela").textContent=substituir?"Substituir esta tela":"Salvar edição desta tela";
+  $("#addTela").dataset.substituir=substituir?"1":"0";
+  document.querySelector('[data-pane="telas"]').scrollIntoView({block:"start",behavior:"smooth"});
 }
 function moverTela(i,d){const j=i+d;if(j<0||j>=TELAS.length)return;[TELAS[i],TELAS[j]]=[TELAS[j],TELAS[i]];desenharSlides();}
 function coletarEditor(){
@@ -661,9 +684,12 @@ function coletarEditor(){
   DADOS.rematricula={meta:Number($("#edRemMeta").value)||0,realizado:Number($("#edRemReal").value)||0};
   DADOS.novas={meta:Number($("#edNovMeta").value)||0,realizado:Number($("#edNovReal").value)||0};
   // Os segmentos já são atualizados nos campos; sincroniza valores atuais antes de salvar.
-  document.querySelectorAll("#edSegmentos .segmento").forEach((el,i)=>{
-    const s=DADOS.segmentos[i]; if(!s)return;
-    el.querySelectorAll("[data-s]").forEach(inp=>{const k=inp.dataset.s;s[k]=k==="somaNoTotal"?inp.checked:(k==="nome"?inp.value:Number(inp.value)||0);});
+  document.querySelectorAll("#edSegmentos .segmento-card").forEach((el,i)=>{
+    const seg=DADOS.segmentos[i]; if(!seg)return;
+    el.querySelectorAll("[data-s]").forEach(inp=>{
+      const k=inp.dataset.s;
+      seg[k]=k==="somaNoTotal"?inp.checked:(k==="nome"?inp.value:(Number(inp.value)||0));
+    });
   });
 }
 function aplicarAlteracoes(){
@@ -723,25 +749,46 @@ $("#addCampanha").addEventListener("click",()=>{
   if(!src){alert("Anexe uma imagem ou informe um endereço de imagem.");return;}
   // Remove a campanha anterior: existe sempre apenas uma campanha ativa.
   for(let i=TELAS.length-1;i>=0;i--) if(TELAS[i].campanha) TELAS.splice(i,1);
-  const nova={tipo:"imagem",tempo:"fixo",src,cheia:$("#campCheia").checked,campanha:nome};
-  TELAS.push(nova);
+  const tempo=Math.max(1,Math.floor(Number($("#campTempo").value)||30));
+  const nova={tipo:"imagem",tempo,src,cheia:$("#campCheia").checked,campanha:nome};
+  TELAS.unshift(nova);
   aplicarAlteracoes();
   $("#campNome").value="";$("#campSrc").value="";$("#campArquivo").value="";
   campanhaDataUrl="";$("#campPreview").removeAttribute("src");$("#campPreview").style.display="none";
-  $("#campStatus").textContent="Campanha publicada e salva neste navegador. Ela permanecerá na tela até ser substituída.";
+  $("#campStatus").textContent=`Campanha publicada. Será exibida por ${tempo} segundos e depois o painel avançará automaticamente para a próxima tela.`;
   desenharSlides();
   // A nova campanha entra imediatamente em exibição e não avança sozinha.
   const pos=TELAS.indexOf(nova); montarTelas(); mostrar(pos);
 });
+function limparFormularioTela(){
+  telaEmEdicao=null;
+  $("#novoSrc").value="";$("#novoTitulo").value="";$("#novoTexto").value="";
+  $("#addTela").textContent="+ Adicionar tela à apresentação";
+  $("#addTela").dataset.substituir="0";
+}
 $("#addTela").addEventListener("click",()=>{
   const tipo=$("#novoTipo").value, tempo=Math.max(1,Number($("#novoTempo").value)||20);
   const t={tipo,tempo};
-  if(tipo==="imagem"||tipo==="video"||tipo==="site"){t.src=$("#novoSrc").value.trim();if(!t.src){alert("Informe o arquivo ou URL.");return;}t.cheia=true;}
+  if(tipo==="imagem"||tipo==="video"||tipo==="site"){
+    t.src=$("#novoSrc").value.trim();
+    if(!t.src){alert("Informe o arquivo ou URL para esta tela.");return;}
+    t.cheia=true;
+  }
   if(tipo==="aviso"){t.titulo=$("#novoTitulo").value.trim()||"Aviso";t.texto=$("#novoTexto").value.trim();}
-  if(tipo==="painel") t.tempo=tempo;
-  TELAS.push(t);$("#novoSrc").value="";$("#novoTitulo").value="";$("#novoTexto").value="";desenharSlides();
+  const idx=telaEmEdicao;
+  if(idx!==null && idx>=0 && idx<TELAS.length){
+    const antiga=TELAS[idx]; if(antiga.campanha)t.campanha=antiga.campanha;
+    TELAS[idx]=t;
+  }else TELAS.push(t);
+  limparFormularioTela();desenharSlides();
 });
-$("#salvarEditor").addEventListener("click",()=>{aplicarAlteracoes();alert("Painel atualizado nesta tela. Para atualizar outros dispositivos, baixe e publique o HTML atualizado.");});
+$("#salvarEditor").addEventListener("click",()=>{
+  aplicarAlteracoes();
+  fecharEditor();
+  // Retorna à tela inicial; o usuário pressiona OK para iniciar novamente.
+  liberado=false;
+  $("#iniciar").style.display="flex";
+});
 function gerarHTMLAtualizado(){
   coletarEditor();
   let html=document.documentElement.outerHTML;
